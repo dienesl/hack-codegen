@@ -9,7 +9,7 @@
 
 namespace Facebook\HackCodegen;
 
-use namespace HH\Lib\{Str, Vec};
+use namespace HH\Lib\{Keyset, Str, Vec};
 
 /**
  * Base class to generate a function or a method.
@@ -69,10 +69,35 @@ abstract class CodegenFunctionish implements ICodeBuilderRenderer {
   public function addContexts(
     Traversable<string> $contexts,
   ): this {
-    foreach($contexts as $context) {
-      $this->addContext($context);
+    $contexts = keyset($contexts);
+    if (C\is_empty($contexts)) {
+      // Don't accidentally convert `foo(): void` to `foo()[]: void`;
+      // `addContexts()` should only make things *more* permissive
+      return $this;
     }
 
+    if ($this->contexts is null || C\is_empty($this->contexts)) {
+      $this->contexts = $contexts;
+    } else {
+      $this->contexts = Keyset\union($this->contexts, $contexts);
+    }
+
+    return $this;
+  }
+
+  /** Set or remove the contexts.
+   *
+   * - if passed `null`, the function or method will not contain a contexts
+   *   declaration, e.g. `function foo(): void {}`; this is equivalent to
+   *   `function foo()[defaults]: void {}`
+   * - if passed the empty set (e.g. `keyset[]`), the function will have an
+   *   empty contexts declaration, e.g. `function foo()[]: void {}`. This is
+   *   considered to be an approximation of declaration pure functions.
+   */
+  public function setContexts(
+    ?Container<string> $contexts,
+  ): this {
+    $this->contexts = ($contexts is null) ? null : keyset($contexts);
     return $this;
   }
 

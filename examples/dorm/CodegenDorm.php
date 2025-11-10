@@ -17,7 +17,7 @@ use namespace HH\Lib\Str;
  * that will allow to read the data from a database and store it
  * in the object.
  */
-class CodegenDorm {
+final class CodegenDorm {
 
   private ICodegenFactory $codegen;
 
@@ -184,7 +184,7 @@ class CodegenDorm {
   }
 
   private function getDatabaseRowShape(): CodegenShape {
-    $db_fields = varray[];
+    $db_fields = vec[];
     foreach ($this->schema->getFields() as $field) {
       $type = $field->getType();
       if ($type === \DateTime::class) {
