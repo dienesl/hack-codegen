@@ -9,7 +9,7 @@
 
 namespace Facebook\HackCodegen;
 
-use namespace HH\Lib\{Keyset, Str, Vec};
+use namespace HH\Lib\{C, Keyset, Str, Vec};
 
 /**
  * Base class to generate a function or a method.
@@ -54,10 +54,8 @@ abstract class CodegenFunctionish implements ICodeBuilderRenderer {
     return $this;
   }
 
-  public function addContext(
-    string $context,
-  ): this {
-    if($this->contexts === null) {
+  public function addContext(string $context): this {
+    if ($this->contexts === null) {
       $this->contexts = keyset<string>[$context];
     } else {
       $this->contexts[] = $context;
@@ -66,9 +64,7 @@ abstract class CodegenFunctionish implements ICodeBuilderRenderer {
     return $this;
   }
 
-  public function addContexts(
-    Traversable<string> $contexts,
-  ): this {
+  public function addContexts(Traversable<string> $contexts): this {
     $contexts = keyset($contexts);
     if (C\is_empty($contexts)) {
       // Don't accidentally convert `foo(): void` to `foo()[]: void`;
@@ -94,9 +90,7 @@ abstract class CodegenFunctionish implements ICodeBuilderRenderer {
    *   empty contexts declaration, e.g. `function foo()[]: void {}`. This is
    *   considered to be an approximation of declaration pure functions.
    */
-  public function setContexts(
-    ?Container<string> $contexts,
-  ): this {
+  public function setContexts(?Container<string> $contexts): this {
     $this->contexts = ($contexts is null) ? null : keyset($contexts);
     return $this;
   }
@@ -203,7 +197,10 @@ abstract class CodegenFunctionish implements ICodeBuilderRenderer {
     $builder = (new HackBuilder($this->config))
       ->add($keywords)
       ->addf('%s(%s)', $this->name, Str\join($this->parameters, ', '))
-      ->addIf($this->contexts !== null, '[' . Str\join($this->contexts ?? keyset[], ', ') . ']')
+      ->addIf(
+        $this->contexts !== null,
+        '['.Str\join($this->contexts ?? keyset[], ', ').']',
+      )
       ->addIf($this->returnType !== null, ': '.($this->returnType ?? ''));
 
     $code = $builder->getCode();
@@ -236,7 +233,10 @@ abstract class CodegenFunctionish implements ICodeBuilderRenderer {
         ->addLines($parameter_lines)
         ->unindent()
         ->add(')')
-        ->addIf($this->contexts !== null, '[' . Str\join($this->contexts ?? keyset[], ', ') . ']')
+        ->addIf(
+          $this->contexts !== null,
+          '['.Str\join($this->contexts ?? keyset[], ', ').']',
+        )
         ->addIf($this->returnType !== null, ': '.($this->returnType ?? ''));
 
       return $multi_line_builder->getCode();
